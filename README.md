@@ -1,2 +1,2 @@
 # Calculator
-Simple calculator program written Java for a college course
+Simple calculator program written in Java for a college course

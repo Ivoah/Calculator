@@ -10,9 +10,9 @@ public class Calculator extends JFrame implements ActionListener {
     "7",   "8", "9",   "*",
     "4",   "5", "6",   "-",
     "1",   "2", "3",   "+",
-    "Cls", "0", "Del", "=",
+    "Cls", "0", ".", "=",
   };
-  
+
   Scanner inFile = null;
   JPanel keypad = null;
   JButton[] keys = null;
@@ -21,13 +21,13 @@ public class Calculator extends JFrame implements ActionListener {
   public Calculator() {
 
     Font fnt = new Font("Courier", Font.PLAIN, 36);
-    
+
     try {
       UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
       System.out.println("Error setting look and feel");
     }
-    
+
     keypad = new JPanel(new GridLayout(5, 4));
     keys = new JButton[5*4];
 
@@ -49,21 +49,15 @@ public class Calculator extends JFrame implements ActionListener {
     pack();
     setTitle("Calculator");
     setVisible(true);
-    
+
   }
 
   public void actionPerformed(ActionEvent e) {
-    if (e.getActionCommand().equals("Del")) {
-      try {
-        output.setText(output.getText().substring(0, output.getText().length() - 1));
-      } catch (StringIndexOutOfBoundsException err) {
-        
-      }
-    } else if (e.getActionCommand().equals("Cls")) {
+    if (e.getActionCommand().equals("Cls")) {
       output.setText("");
     } else if (e.getActionCommand().equals("=")) {
       try {
-        output.setText(Integer.toString(eval(output.getText())));
+        output.setText(Double.toString(eval(output.getText())));
       } catch (EmptyStackException err) {
         output.setText("Error");
       }
@@ -72,16 +66,30 @@ public class Calculator extends JFrame implements ActionListener {
     }
   }
 
-  public int eval(String expr) throws EmptyStackException {
+  public double eval(String expr) throws EmptyStackException {
     Stack<Character> opStack = new Stack<Character>();
-    Stack<Integer> valStack = new Stack<Integer>();
+    Stack<Double> valStack = new Stack<Double>();
     for (int i = 0; i < expr.length(); i++) {
       char c = expr.charAt(i);
-      if (c >= '0' && c <= '9') {
-        int num = c - '0';
+      if (c >= '0' && c <= '9' || c == '.') {
+        double num = c - '0';
         i++;
-        while ( i < expr.length() && (expr.charAt(i) >= '0' && expr.charAt(i) <= '9')) {
-          num = num*10 + expr.charAt(i) - '0';
+        int dp = 0;
+        if (c == '.') {
+          num = 0;
+          dp = 1;
+        }
+        while ( i < expr.length() && ((expr.charAt(i) >= '0' && expr.charAt(i) <= '9') || expr.charAt(i) == '.')) {
+          if (expr.charAt(i) == '.') {
+            dp = 1;
+          } else {
+            if (dp > 0) {
+              num += (expr.charAt(i) - '0')/Math.pow(10, dp);
+              dp++;
+            } else {
+              num = num*10 + expr.charAt(i) - '0';
+            }
+          }
           i++;
         }
         i--;
@@ -107,12 +115,12 @@ public class Calculator extends JFrame implements ActionListener {
     }
     return valStack.pop();
   }
-  
-  public void apply(Stack<Integer> valStack, Stack<Character> opStack) throws EmptyStackException {
-    int v2 = valStack.pop();
-    int v1 = valStack.pop();
+
+  public void apply(Stack<Double> valStack, Stack<Character> opStack) throws EmptyStackException {
+    double v2 = valStack.pop();
+    double v1 = valStack.pop();
     char op = opStack.pop();
-    int ans = 0;
+    double ans = 0;
     switch (op) {
       case '*':
         ans = v1 * v2;
@@ -132,7 +140,7 @@ public class Calculator extends JFrame implements ActionListener {
     }
     valStack.push(ans);
   }
-  
+
   public int prec(char op) {
     switch (op) {
       case '*':
@@ -146,7 +154,7 @@ public class Calculator extends JFrame implements ActionListener {
         return 0;
     }
   }
-  
+
   public static void main(String[] args) throws EmptyStackException {
     Calculator calc = new Calculator();
   }
